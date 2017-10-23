@@ -66,7 +66,11 @@ In the last sub-problem, we will consider papers that are relatively new and are
 Following are the data sources that we have as of now and are planning to use for the project. 
 \begin{enumerate}
 \item All the pre-prints on arXiv.org are freely available. We can use the apis provided by arXiv.org to get all the data we need.  
-\item Specifically, we will be needing data about the paper such as names of authors, paper's total citations, keywords, references and so on. We will also need data about its authors such as their number of papers, total number of citations, affiliated institutes etc. While exploring about the options to get this information, we found that Microsoft academic graph and open academic graph \cite{data} already crawl this information for arXiv as well as other sources. A snapshot of this data is freely available. We are mainly going to use this data for the purpose of this project. We played with their json data files using panda data-frame and following are our initial observations and findings.
+\item Specifically, we will be needing data about the paper such as names of authors, paper's total citations, keywords, references and so on. We will also need data about its authors such as their number of papers, total number of citations, affiliated institutes etc. While exploring about the options to get this information, we found that Microsoft academic graph and open academic graph \cite{data} already crawl this information for arXiv as well as other sources. A snapshot of this data is freely available. We are mainly going to use this data for the purpose of this project.  The data is available for 166,192,182 papers from Microsoft Academic graph.
+\item Scirate \cite{scirate} is a platform that shows the top papers for varieties of fields. It's mentioned on their portal that the data is available under Creative Common License. So, we have requested them to give access to the data and we hope that we will get it. With the help of Scirate, we can even tune our model better according to our use-cases.
+\end{enumerate}
+
+We have played with json data files we got from Microsoft Academic Graph using python panda data-frame and following are our initial observations and findings.
 
 Figure \ref{fig:datamodel} shows the fields available for each of the paper. It includes abstract of the paper, link to author objects , links to the reference papers, keywords etc. 
 
@@ -74,9 +78,7 @@ Figure \ref{fig:top_papers} shows some of the top records (having maximum citati
 
 Similarly, figure \ref{fig:top_venues} lists the top venues with the total number of citations. Clearly, Nature and Science are the most popular in scientific community. 
 
-Figure \ref{fig:nature_year_wise} shows the number of papers publised in Nature in the last 100 years. The data we used to plot this is from one of the data files (and not the entire database as it's distributed across files) and it's not fair to conclude anything based on this graph at this moment as there is a lot of more data to be processed.
-\item Scirate \cite{scirate} is a platform that shows the top papers for varieties of fields. It's mentioned on their portal that the data is available under Creative Common License. So, we have requested them to give access to the data and we hope that we will get it. With the help of Scirate, we can even tune our model better according to our use-cases.
-\end{enumerate}
+Figure \ref{fig:nature_year_wise} shows the number of papers publised in Nature in the last 100 years. The data we used to plot this is from one of the data files (and not the entire database as it's distributed across multiple files) and it's not fair to conclude anything based on this graph at this moment as there is a lot of more data to be processed.
 
 
 
@@ -95,9 +97,6 @@ Keeping in mind the above approaches and our three sub-parts of the main problem
 
 \item In this case, we have the least amount of information and evaluation is also hard. For new papers, we will not have citations or any other external data to score it. In this case, we will mostly use the details available in the paper (that is authors' details, references and their credibility, number of pages, a proper format with relevant titles, figures etc.). We found one good resource \cite{scirate}  that already classifies good arxiv paper up to some extent and we can get the top papers from there (which will be very recent) and can evaluate our model by comparing it.
 \end{enumerate}
-
-\section{Conclusion}
-TODO
 \begin{thebibliography}{9}
 \bibitem{Hirsch}
 J. E. Hirsch.
