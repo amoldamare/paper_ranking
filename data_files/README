@@ -1,0 +1,13 @@
+DSF File processing
+——————
+
+- First N words : awk 'NR<=8{print;next}{exit}' RS='[[:blank:]]+|\n' aminer_papers_0.json
+- Steps:
+    - Replace \n with ,  
+            - >>>> tr '\n' ',' < test2.json > test2-replaced-2.json
+    - Remove the last , 
+            - >>>>> sed '$ s/.$//' test2-replaced-2.json > newfile.json
+    - Append [ and ] at the beginning and end 
+            - >>>> perl -i -pe's/$/]/ if eof' test2-replaced3.json, 
+            - >>>> sed 's/^/[/' test2-replaced3.json > test2-replace4.json
+
