@@ -1,0 +1,159 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{comment}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\begin{document}
+\title{Progress Report (CSE 519): Ranking arXiv papers}
+
+\author{Amol Damare \\ adamare@cs.stonybrook.edu \\SBU ID: 107914028
+\and
+Punit Mehta \\  pmmehta@cs.stonybrook.edu \\SBU ID: 111461860}
+\maketitle
+
+\section{Introduction}
+Ranking of scientific paper is non-trivial task even for an expert. In our project proposal we had presented an idea for ranking the papers in arxiv. Specifically we had identified 3 main subproblems. Namely \\
+\begin{enumerate}
+\item Ranking the papers which are already published and are available on arXiv.
+\item Ranking the papers which are not published anywhere but available on arXiv from quite some time.
+\item Ranking new papers which are recently uploaded on arXiv and are not published or accepted anywhere yet.
+\end{enumerate}
+We also described the data set we were going to use and our approach to solve these subproblems. Although our dataset remains the same, we have since changed our approach for solving these problems and evaluation criteria. We will be an approach based on collective behavior of papers in citation graph.In this progress report we will briefly describe the dataset and give in detail the approach we will be using to achieve goal of this project. Finally we will also present our baseline model and present it's evaluation. Next section describes the related research work  that has influenced our approach.
+\section{Social behavior of scientific papers}
+A paper can be related to another paper via various different ways e.g. one paper cites other, both papers cite same paper, they are accepted in same journal/conference, they can have same authors etc. We can use these relationships to form a network or graph of papers. When we think of scoring these papers we think score of a paper will be dependent on scores the papers it is connected to. There is correlation between scores of connected papers. So when we have a new paper we can score it by looking at the scores of the papers it is connected to. In this way network of papers behaves similar to any social network. This relationship allows us to apply recent developments in social relational learning \cite{deepwalk}  ,\cite{tang2011leveraging}to our problem. This allows us model our problem as a relational learning problem \cite{tang2009scalable}, \cite{tang2009relational}. 
+\section{Approach}
+The basic approach is given in algorithm \ref{alg:algo1}
+\begin{algorithm}
+\caption{High level algorithm to get ranks of papers}
+\label{alg:algo1}
+\begin{algorithmic}[1]
+\State Create a graph of papers capturing relations such as citations, authors, conferences etc.
+\State Get latent social embeddings for the vertices of this graph. 
+\State Create train and test data using some helper ranking function.
+\State Train a model on this embedding to predict the score/rank of paper.
+\end{algorithmic}
+\end{algorithm}
+Now we will go in details of each step in this algorithm. Step 1 is trivial for our baseline model. We have created the graph using just citations as criteria to get a citation graph of of papers. We can easily extend this graph to include other relationships as well as we have the necessary data to build such graph. Figure \ref{fig:datamodel} shows the fields we have for all the papers.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=17cm,height=8cm]{datamodel_new}
+    \caption{Paper data model and its fields \cite{data}}
+    \label{fig:datamodel}
+\end{figure}
+
+
+\subsection{Latent social representation of graph}
+In step 2 of our algorithm \ref{alg:algo1} we need to get latent social representation of the graph we constructed in step 1. We have used "DeepWalk" algorithm presented in \cite{deepwalk} to get the social embedding of the citation graph. "DeepWalk" applies deep learning techniques to learn the latent social representations of each vertex in the network. To do this \cite{deepwalk} has presented idea that random walks in graph is similar to short sentences in a special language whose vocabulary is the set of vertices of the network. Hence we can apply same deep learning techniques that are used in neural language models to learn latent representation of each vertex. We will be using the same algorithm to get the representation of each vertex in our citation graph. There are other methods to get social representation of a vertex such as Spectral clustering\cite{tang2011leveraging} which uses spectral graph theory(eigen values of Laplcian of graph), \cite{tang2009relational} uses eigen values of Modularity matrix of graph etc. Deepwalk works well on all types graph and works very well even if the graph is sparsely labeled in relational classification task \cite{deepwalk}, which is exactly kind of representation we would need to rank the papers as we have very huge graph(166,192,182 vertices) with very sparse labelling (as we will be using experts to rank the few papers). 
+\subsection{Intuitive Ranking Helper Function}
+We don't have any intuitive way to rank or score papers based on social representations we got from running DeepWalk on the graph. Also it is very difficult to get a generalized scoring/ranking function that works universally well. But if we just consider one of the parameters to decide if paper is good or not then we can have a intuitive ranking function that we can easily explain. But this ranking function does not generalize well. In this project we propose an idea that we will generalize this naive but intuitive ranking function by training some regression model on latent social representation of the graph. For baseline we are considering a naive function that ranks a paper based on conference or journal it was accepted in.  We can easily get the impact factors of conferences and journals. We assume that if venue at which paper is published is good then paper is as good as the venue itself. Using this naive intuitive function we can sparsely get the scores of paper in our graph. We can then train a regression model on this data to generalize the ranking function to look at other aspects of the paper as well. In our base line model, graph is constructed using citations and our ranking helper function is only considering conferences that these papers were published in. 
+\subsection{Prediction of the score/rank of a paper} 
+To rank/score the papers, our initial approach was to get the feature vectors from deepwalk and then come up with a function of this feature vector to get the score of the paper. But after getting these feature vectors for each paper we came to conclusion that its very hard to interpret what each of this dimension represent intuitively. e.g. does feature 0 represent citation relation or does it represent author relation etc.  So it was hard to come up with a function which would make sense and give us good results for all the papers. We have a powerful tool in our hand in the form these feature vectors we got from deepwalk, and we want to utilize their full potential. So we tried to model ranking as a regression problem. Let's say we have ranks/scores of some of the papers then we can easily train a model on feature vectors to predict the rank or score of the rest of the papers. And as show in deepwalk paper such model works well even in very sparsely labeled dataset such as youtube \cite{deepwalk}.  So for our baseline model we ranked few papers manually.  We have used the ranks of conferences or journals to get estimate of rank/score of paper that was published in that particular conference/journal. We have made an assumption that if conference/journal is good then paper accepted in that journal/conference will be a good paper too. We used this logic to create the training dataset for our models.
+\section{Baseline model and Evaluation}
+Our main goal of baseline model is to test whether our approach presented in algorithm \ref{alg:algo1} is correct or not. Also we wanted to test how accurately does the representations from deepwalk capture relationships not implicitly used in building the graph. To answer both these question we created our baseline model by creating graph using citations of a paper (i.e. there will be edge between 2 papers if one paper cites the other). We designed our helper ranking function naively by assuming that paper is as good as venue it is published in. Using these sparsely labelled papers we trained a linear regression model on feature vectors we got by running DeepWalk on our graph. Algorithm \ref{alg:algo2} gives detailed algorithm for baseline model.
+\begin{algorithm}
+\caption{Algorithm for Baseline model}
+\label{alg:algo2}
+\begin{algorithmic}[1]
+\State Create graph $G(V,E)$ using citations.
+\State $G_{train}, G_{test}$=Split($G$) \Comment{Get random papers from graph to create training and testing datasets}
+\State IntuitiveRankingHelperFunction($V_{train}$)
+\State IntuitiveRankingHelperFunction($V_{test}$)
+\State Initialize F as array of feature vectors
+\State F=DeepWalk(G) \Comment{This runs deepwalk on graph to get vector representation of each vertex }
+\State $model$=LinearModel($G_{train},F$)\Comment{Initialize a linear model}
+\State Evaluate  $model$ on $G_{test}$
+\State ranks=model.predict(G)
+\State return ranks
+\end{algorithmic}
+\end{algorithm}
+\begin{algorithm}
+\caption{Algorithm for intuitively ranking papers}
+\label{alg:algo3}
+\begin{algorithmic}[1]
+\Procedure{IntuitiveRankingHelperFunction}{$V$}
+\State Initialize VenueRank table \Comment{this table has ranks of each conference and/or journal}
+\For {$v in V$}
+	\State $rank[v]=rank[Venue[v]]$ \Comment{Naive way to rank the paper, Paper is as good as conference/journal it is published in}
+\EndFor
+\State return $rank$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Now we will present the results of our experiment. 
+\\\ TODO : Evaluation
+
+
+\section{Future Work and Conclusion}
+As seen from results we presented we can see that ranking function really depends on our helper function and the graph we constructed using papers. We can see now a few ways to improve our model
+\begin{enumerate}
+\item Instead of using a helper function we can get an expert to rank or we can rank ourselves, a small number of papers, so we get a more robust initial estimate of ranks of papers. We think this kind of function will generalize better using our approach.
+\item We can construct graph using various other homophily such as authors, conferences etc. We think more relationship we capture in our initial graph, we will get better results for papers which do not all the information such as citations, conferences etc.
+\item We can also improve model by using non-linear regression model in last step of our algorithm.
+\end{enumerate}
+We will try above approaches in an attempt to improve our baseline model.
+We also think, we will better results if we couple the training of DeepWalk and regression linear model together, similar to the deep learning models used in NLP tasks. And if time permits we want to try this approach. This will also require deep understanding of DeepWalk algorithm at coding level.
+
+\begin{thebibliography}{9}
+\bibitem{deepwalk}
+Perozzi, B. ,Al-Rfou, R.,Skiena, S.
+\newblock DeepWalk: Online Learning of Social Representations
+\newblock Proceedings of the 20th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining
+\newblock KDD '14
+\bibitem{tang2009relational}
+Tang, Lei and Liu, Huan
+\newblock Relational learning via latent social dimensions
+\newblock Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and data mining,2009
+
+
+
+\bibitem{tang2009scalable}
+Tang, Lei and Liu, Huan
+ \newblock Scalable learning of collective behavior based on sparse social dimensions
+  \newblock Proceedings of the 18th ACM conference on Information and knowledge management,2009
+\bibitem{Hirsch}
+J. E. Hirsch.
+\newblock An index to quantify an individual's scientific research output, 2005,
+\newblock Proc.Nat.Acad.Sci.46:16569,2005;
+\newblock arXiv:physics/0508025.
+\newblock DOI: 10.1073/pnas.0507655102.
+\bibitem{gindex}
+Egghe, L.
+\newblock  Theory and practise of the g-index
+\newblock Scientometrics (2006) 69: 131.
+\newblock https://doi.org/10.1007/s11192-006-0144-7
+\bibitem{pagerank}
+Page, L., Brin, S., Motwani, R., Winograd, T. 
+\newblock  The PageRank citation ranking: Bringing order to the web  
+\newblock  (Technical Report). Stanford InfoLab.
+\bibitem{garfield}
+Garfield, E.
+\newblock  Citation analysis as a tool in journal evaluation
+\newblock Science,178,471-479.
+\bibitem{pinski}
+Pinski, G.,  Narin, F. 
+\newblock Citation influence for journal aggregates of scientific publications: Theory, with application to the literature of physics
+\newblock  Information Processing and Management, 12(5), 297-312
+\bibitem{data}
+Microsoft Academic Graph 
+\newblock https://www.openacademic.ai/oag/
+\bibitem{arxiv}
+arXiv.org
+\newblock  https://arxiv.org/
+
+
+\bibitem {tang2011leveraging}
+  Tang, Lei and Liu, Huan
+  \newblock Leveraging social media networks for classification
+  \newblock Data Mining and Knowledge Discovery,2011,Springer
+ 
+\end{thebibliography}
+
+\listoffigures
+\end{document}
