@@ -22,11 +22,11 @@ Ranking of scientific paper is non-trivial task even for an expert. In our proje
 \item Ranking the papers which are not published anywhere but available on arXiv from quite some time.
 \item Ranking new papers which are recently uploaded on arXiv and are not published or accepted anywhere yet.
 \end{enumerate}
-We also described the data set we were going to use and our approach to solve these subproblems. Although our dataset remains the same, we have since changed our approach for solving these problems and evaluation criteria. We will be an approach based on collective behavior of papers in citation graph.In this progress report we will briefly describe the dataset and give in detail the approach we will be using to achieve goal of this project. Finally we will also present our baseline model and present it's evaluation. Next section describes the related research work  that has influenced our approach.
+We also described the data set we were going to use and our approach to solve these subproblems. Although our dataset remains the same, we have since changed our approach for solving these problems and evaluation criteria. We will be using  an approach based on collective behavior of papers in citation graph as suggested by Prof. Skiena.In this progress report we will briefly describe the dataset and give in detail the approach we will be using to achieve goal of this project. Finally we will also present our baseline model and present it's evaluation. Next section describes the related research work  that has influenced our approach.
 \section{Social behavior of scientific papers}
-A paper can be related to another paper via various different ways e.g. one paper cites other, both papers cite same paper, they are accepted in same journal/conference, they can have same authors etc. We can use these relationships to form a network or graph of papers. When we think of scoring these papers we think score of a paper will be dependent on scores the papers it is connected to. There is correlation between scores of connected papers. So when we have a new paper we can score it by looking at the scores of the papers it is connected to. In this way network of papers behaves similar to any social network. This relationship allows us to apply recent developments in social relational learning \cite{deepwalk}  ,\cite{tang2011leveraging}to our problem. This allows us model our problem as a relational learning problem \cite{tang2009scalable}, \cite{tang2009relational}. 
+A paper can be related to another paper via various different ways e.g. one paper cites other, both papers cite same paper, they are accepted in same journal/conference, they can have same authors etc. We can use these relationships to form a network or graph of papers. When we think of scoring these papers we can say that score of a paper will be dependent on scores the papers it is connected to in graph. There is correlation between scores of connected papers. So when we have a new paper we can score it by looking at the scores of the papers it is connected to. In this way network of papers behaves similar to any social network. This relationship allows us to apply recent developments in social relational learning \cite{deepwalk}  ,\cite{tang2011leveraging}to our problem. Also it allows us model our problem as a relational learning problem \cite{tang2009scalable}, \cite{tang2009relational}. 
 \section{Approach}
-The basic approach is given in algorithm \ref{alg:algo1}
+The basic approach that will be used in scoring papers is given in algorithm \ref{alg:algo1}
 \begin{algorithm}
 \caption{High level algorithm to get ranks of papers}
 \label{alg:algo1}
@@ -37,7 +37,7 @@ The basic approach is given in algorithm \ref{alg:algo1}
 \State Train a model on this embedding to predict the score/rank of paper.
 \end{algorithmic}
 \end{algorithm}
-Now we will go in details of each step in this algorithm. Step 1 is trivial for our baseline model. We have created the graph using just citations as criteria to get a citation graph of of papers. We can easily extend this graph to include other relationships as well as we have the necessary data to build such graph. Figure \ref{fig:datamodel} shows the fields we have for all the papers.
+Now we will go in details of each step in this algorithm. Step 1 is trivial for our baseline model. We have created the graph using just citations as criteria to get a citation graph of of papers. We can easily extend this graph to include other relationships as well, as we have the necessary data to build such graph. Figure \ref{fig:datamodel} shows the fields we have for all the papers.
 
 
 \begin{figure}[h]
@@ -87,9 +87,47 @@ Our main goal of baseline model is to test whether our approach presented in alg
 \end{algorithm}
 
 Now we will present the results of our experiment. 
-\\\ TODO : Evaluation
+\subsection{Experiment}
+We have a data set consisting of 166,192,182 papers which is a huge number to deal with for baseline model, so we decided to limit ourselves to papers just in computer science field. We have selected total of $10,000$ papers for this phase of the project. We divided this dataset in to $70\%/30\% $ training and testing splits. Table \ref{table:1} shows the results of our training. We got $14\%$ error on our test datasets. Considering that we constructed graph using just citations and ranking function used for training was based on conferences , we think this is an impressive result for baseline model. Figure \ref{fig:errorhistogram} shows the histogram of errors for our model. It shows scores given by our model varies within 1 or 2 points of actual score. This is desirable property for our model as we want the model to generalize and take in to consideration other affiliations of the paper as well while scoring. $R^2$ value of our model is $0.095534$, which is indicates that our model not that good and can be improved. Figure \ref{} shows the p-test result for our model. Our p-value is. 0.043, which indicates that our model is good and we can reject the null hypothesis.  \\
+\\From the evaluation of our model it is clear that hypothesis we made are actually true. We can say that approach we are using works and we can make further progress by improving our model to get good results. We also shown that "DeepWalk" indeed captures the relationship which are not explicit at the time of creation of graph. We created the graph using citations and still got good results when we trained the model to basically predict the relationship based on conferences. 
 
-
+\begin{table}[h!]
+\centering
+\begin{tabular}{||c c c ||} 
+ \hline
+ Data Set & Training &  Testing \\ [0.5ex] 
+ \hline\hline
+ Mean Error &  1 & 13.97\% \\ [1ex] 
+Median Error & 1  & 13.87\% \\ [1ex] 
+ \hline
+\end{tabular}
+\caption{Error rates for linear regression base model}
+\label{table:1}
+\end{table}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=17cm,height=8cm]{figure_1}
+    \caption{Error histogram of baseline model}
+    \label{fig:errorhistogram}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=16cm,height=7cm]{venue-image}
+    \caption{Most prominent topics in computer science}
+    \label{fig:venue}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=16cm,height=7cm]{visual-gen}
+    \caption{Most prominent general topics}
+    \label{fig:topic}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=16cm,height=9cm]{permutation_test}
+    \caption{P-test for model}
+    \label{fig:ptest}
+\end{figure}
 \section{Future Work and Conclusion}
 As seen from results we presented we can see that ranking function really depends on our helper function and the graph we constructed using papers. We can see now a few ways to improve our model
 \begin{enumerate}
