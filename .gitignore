@@ -3,3 +3,11 @@ proposal.aux
 proposal.lof
 proposal.log
 proposal.synctex.gz
+
+*.aux
+
+*.lof
+
+*.log
+
+*.gz
